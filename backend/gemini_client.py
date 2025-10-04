@@ -18,16 +18,18 @@ def generate_code_longCat(chat_id: str, prompt: str, get_latest_version_func) ->
 
     if last_version:
         contextual_prompt = f"""
-Here is the latest version of the code:
+        Here is the latest version of the code:
 
-```
-{last_version}
-```
+        ```
+        {last_version}
+        ```
 
-Now update it based on this request: {prompt}
-"""
+        Now update it based on this request: {prompt}
+        """
     else:
         contextual_prompt = prompt
+    
+    contextual_prompt += " please give me only the code with the file name, please do not include any explanations or extra text. Please give me the app in flask framework, the frontend should be in templates folder, give me the code in such a format that it is not going to have CROSS origin errors when I run it, and it is answers to all the requests from external networks, please generate requirements.txt file along with that"
 
     url = "https://api.longcat.chat/openai/v1/chat/completions"
     headers = {
@@ -46,6 +48,7 @@ Now update it based on this request: {prompt}
 
     response = requests.post(url, headers=headers, json=data)
     output = response.json()
+    print(output["choices"][0]["message"]["content"])
     return output["choices"][0]["message"]["content"]
 
 def generate_code(prompt: str) -> str:

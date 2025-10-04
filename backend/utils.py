@@ -1,4 +1,5 @@
 import os
+import re
 
 CHECKPOINT_DIR = "checkpoints"
 
@@ -58,3 +59,34 @@ def get_latest_version(chat_id: str) -> str:
         return None
 
     return parts[-1].strip()
+
+def save_generated_files(output: str, base_dir="."):
+    """
+    Parses model output with file paths and code blocks, then saves them to disk.
+    Example expected format:
+        requirements.txt
+        ```python
+        print("hello")
+        ```
+    """
+    pattern = r'([^\n]+)\n```(?:\w+)?\n([\s\S]*?)```'
+    matches = re.findall(pattern, output)
+
+    if not matches:
+        print("⚠️ No files detected in model output.")
+        return
+
+    for filename, code in matches:
+        # Clean filename: remove **, spaces, etc.
+        clean_name = filename.strip().strip("*").strip()
+
+        filepath = os.path.join(base_dir, clean_name)
+
+        # Ensure parent directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        # Write the code into the file
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(code.strip())
+
+        print(f"✅ Saved {filepath}")
